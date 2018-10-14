@@ -109,38 +109,14 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 // checkIPHandler Determines the requesting host's public IP address from
 // available data and returns it.
 func checkIPHandler(w http.ResponseWriter, r *http.Request) {
-	var ip string
-
-	// First get IP from the request's address
-	if requestIP, _, err := net.SplitHostPort(r.RemoteAddr); err == nil {
-		ip = requestIP
-	}
-
-	// If X-Forwarded-For is present, then override.
-	// Typically, this is sent by reverse proxies.
-	if xForwardedFor, valid := parseIP(r.Header.Get("X-Forwarded-For")); valid {
-		ip = xForwardedFor
-	}
-
-	// If Client-IP is present, then override.
-	// This additional header is in the Dyn CheckIP specifications.
-	if clientIP, valid := parseIP(r.Header.Get("Client-IP")); valid {
-		ip = clientIP
-	}
-
-	// If CF-Connecting-IP is present then override.
-	// If sending traffic through CloudFlare, this header will contain the
-	// requesting IP. X-Forwarded-For is also sent, but can be provided in a way
-	// that will fail IP parsing.
-	if cfConnectingIP, valid := parseIP(r.Header.Get("CF-Connecting-IP")); valid {
-		ip = cfConnectingIP
-	}
+	ip, err := requestIP(r)
 
 	// If the IP was found, print it. Otherwise, print an error.
-	if len(ip) != 0 {
+	if err == nil {
 		fmt.Fprintf(w, "<html><head><title>Current IP Check</title></head><body>Current IP Address: %s</body></html>", ip)
 	} else {
 		w.WriteHeader(http.StatusBadRequest)
+		log.Debug(err)
 		fmt.Fprintf(w, "<html><head><title>Current IP Check</title></head><body>Unable to determine IP</body></html>")
 	}
 }
@@ -198,9 +174,15 @@ func updateHandler(w http.ResponseWriter, r *http.Request) {
 	// Though not documented, badip is provided when an IP fails validation.
 	myip, valid := parseIP(r.URL.Query().Get("myip"))
 	if !valid {
-		cLog.Debug("Missing or invalid myip")
-		fmt.Fprint(w, "badip")
-		return
+		// If myip is not provided, attempt to determine it from request data.
+		var err error
+
+		myip, err = requestIP(r)
+		if err != nil {
+			cLog.Debug("Missing or invalid myip")
+			fmt.Fprint(w, "badip")
+			return
+		}
 	}
 
 	// Attempt the DNS update and print the code returned.
@@ -295,6 +277,44 @@ func recordByHostname(cf *cloudflare.API, hostname string) (cloudflare.DNSRecord
 
 	// Otherwise, provide an error indicating the hostname cannot be found.
 	return hostRecord, hostZone, errors.New("Zone ID with matching hostname not found")
+}
+
+// requestIP Determines the requesting host's public IP address from
+// available data and returns it.
+// It returns the IP as a string, and any errors encountered.
+func requestIP(r *http.Request) (string, error) {
+	var ip string
+
+	// First get IP from the request's address
+	if requestIP, _, err := net.SplitHostPort(r.RemoteAddr); err == nil {
+		ip = requestIP
+	}
+
+	// If X-Forwarded-For is present, then override.
+	// Typically, this is sent by reverse proxies.
+	if xForwardedFor, valid := parseIP(r.Header.Get("X-Forwarded-For")); valid {
+		ip = xForwardedFor
+	}
+
+	// If Client-IP is present, then override.
+	// This additional header is in the Dyn CheckIP specifications.
+	if clientIP, valid := parseIP(r.Header.Get("Client-IP")); valid {
+		ip = clientIP
+	}
+
+	// If CF-Connecting-IP is present then override.
+	// If sending traffic through CloudFlare, this header will contain the
+	// requesting IP. X-Forwarded-For is also sent, but can be provided in a way
+	// that will fail IP parsing.
+	if cfConnectingIP, valid := parseIP(r.Header.Get("CF-Connecting-IP")); valid {
+		ip = cfConnectingIP
+	}
+
+	if len(ip) != 0 {
+		return ip, nil
+	} else {
+		return ip, errors.New("Unable to determine IP")
+	}
 }
 
 // parseIP Parses and validates a provided string as an IP address.
