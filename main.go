@@ -1,4 +1,4 @@
-// Package main of cloudflare-ddns provides a server for updating CloudFlare
+// Package main of cloudyn provides a server for updating CloudFlare
 // DNS entries using the dyn dynamic DNS API.
 // API reference: https://help.dyn.com/remote-access-api/perform-update/
 // Return code reference: https://help.dyn.com/remote-access-api/return-codes/
@@ -69,13 +69,62 @@ func main() {
 	// Handle the update route
 	http.HandleFunc("/update", updateHandler)
 
-	log.Infof("Starting CloudFlare DDNS on %s", cfg.Addr)
+	// Handle the checkip route
+	http.HandleFunc("/checkip", checkIPHandler)
+
+	// Handle the index route
+	http.HandleFunc("/", indexHandler)
+
+	log.Infof("Starting ClouDyn on %s", cfg.Addr)
 	if cfg.DisableAccessLogs {
 		// Start server without access logs
 		log.Fatal(http.ListenAndServe(cfg.Addr, nil))
 	} else {
 		// Start server with access logs
 		log.Fatal(http.ListenAndServe(cfg.Addr, logRequest(http.DefaultServeMux)))
+	}
+}
+
+func indexHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, `
+	<html>
+		<head>
+			<title>ClouDyn</title>
+		</head>
+		<body>
+			<h1>ClouDyn</h1>
+			<h2>Available Routes</h2>
+			<p><a href="update">/update</a> - Perform a DNS update</p>
+			<p><a href="checkip">/checkip</a> - Get the current host's public IP</p>
+			<h2>Documentation</h2>
+			<p><a href="https://github.com/adammillerio/cloudyn">GitHub</a></p>
+			<h2>Info</h2>
+			<p>Created by <a href="https://adammiller.io">Adam Miller</a></p>
+		</body>
+	</html>
+	`)
+}
+
+func checkIPHandler(w http.ResponseWriter, r *http.Request) {
+	var ip string
+
+	if requestIP, _, err := net.SplitHostPort(r.RemoteAddr); err == nil {
+		ip = requestIP
+	}
+
+	if xForwardedFor, valid := parseIP(r.Header.Get("X-Forwarded-For")); valid {
+		ip = xForwardedFor
+	}
+
+	if clientIP, valid := parseIP(r.Header.Get("Client-IP")); valid {
+		ip = clientIP
+	}
+
+	if len(ip) != 0 {
+		fmt.Fprintf(w, "<html><head><title>Current IP Check</title></head><body>Current IP Address: %s</body></html>", ip)
+	} else {
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprintf(w, "<html><head><title>Current IP Check</title></head><body>Unable to determine IP</body></html>")
 	}
 }
 
