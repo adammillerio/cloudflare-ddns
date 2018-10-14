@@ -35,7 +35,7 @@ var cfg config
 
 func init() {
 	// Parse environment variables
-	err := envconfig.Process("cddns", &cfg)
+	err := envconfig.Process("cloudyn", &cfg)
 	if err != nil {
 		log.Fatalf("Error parsing environment variables: %s", err)
 	}
