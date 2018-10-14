@@ -4,7 +4,7 @@
  
  [metadata.heroku]
   root-package = "github.com/adammillerio/cloudyn"
-  go-version = "1.11.1"
+  go-version = "1.11"
 
 [[constraint]]
   name = "github.com/cloudflare/cloudflare-go"
