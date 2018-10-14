@@ -85,6 +85,7 @@ func main() {
 	}
 }
 
+// indexHandler Serves a static web page with information about ClouDyn
 func indexHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, `
 	<html>
@@ -105,25 +106,37 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 	`)
 }
 
+// checkIPHandler Determines the requesting host's public IP address from
+// available data and returns it.
 func checkIPHandler(w http.ResponseWriter, r *http.Request) {
 	var ip string
 
+	// First get IP from the request's address
 	if requestIP, _, err := net.SplitHostPort(r.RemoteAddr); err == nil {
 		ip = requestIP
 	}
 
+	// If X-Forwarded-For is present, then override.
+	// Typically, this is sent by reverse proxies.
 	if xForwardedFor, valid := parseIP(r.Header.Get("X-Forwarded-For")); valid {
 		ip = xForwardedFor
 	}
 
+	// If Client-IP is present, then override.
+	// This additional header is in the Dyn CheckIP specifications.
 	if clientIP, valid := parseIP(r.Header.Get("Client-IP")); valid {
 		ip = clientIP
 	}
 
+	// If CF-Connecting-IP is present then override.
+	// If sending traffic through CloudFlare, this header will contain the
+	// requesting IP. X-Forwarded-For is also sent, but can be provided in a way
+	// that will fail IP parsing.
 	if cfConnectingIP, valid := parseIP(r.Header.Get("CF-Connecting-IP")); valid {
 		ip = cfConnectingIP
 	}
 
+	// If the IP was found, print it. Otherwise, print an error.
 	if len(ip) != 0 {
 		fmt.Fprintf(w, "<html><head><title>Current IP Check</title></head><body>Current IP Address: %s</body></html>", ip)
 	} else {
