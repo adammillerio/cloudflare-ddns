@@ -40,6 +40,11 @@ func init() {
 		log.Fatalf("Error parsing environment variables: %s", err)
 	}
 
+	// If PORT variable is supplied by Heroku, override the CDDNS_ADDR var.
+	if envPort, exists := os.LookupEnv("PORT"); exists {
+		cfg.Addr = fmt.Sprintf(":%s", envPort)
+	}
+
 	// Logging options
 	log.SetFormatter(&log.JSONFormatter{})
 	log.SetOutput(os.Stdout)
