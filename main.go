@@ -120,6 +120,10 @@ func checkIPHandler(w http.ResponseWriter, r *http.Request) {
 		ip = clientIP
 	}
 
+	if cfConnectingIP, valid := parseIP(r.Header.Get("CF-Connecting-IP")); valid {
+		ip = cfConnectingIP
+	}
+
 	if len(ip) != 0 {
 		fmt.Fprintf(w, "<html><head><title>Current IP Check</title></head><body>Current IP Address: %s</body></html>", ip)
 	} else {
