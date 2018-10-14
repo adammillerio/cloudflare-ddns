@@ -1,11 +1,26 @@
-# cloudyn
-Simple web application to implement CloudFlare dynamic DNS updates via the Dyn DNS API.
+# ClouDyn
+
+ClouDyn is a simple web application to implement CloudFlare dynamic DNS updates via the Dyn DNS API.
 
 A hosted version of ClouDyn is available at the following address:
 
 https://cloudyn.luphy.net
 
 This is hosted on the Heroku free tier, so it will likely take a few seconds for the initial request to complete.
+
+# Table of Contents
+
+- [Overview](#overview)
+- [Disclaimers and Notes](#disclaimers-and-notes)
+- [Usage](#usage)
+  * [Update](#update)
+    + [Configuration](#configuration)
+    + [Return Codes](#return-codes)
+    + [Examples](#examples)
+  * [Check IP](#check-ip)
+- [Running the Server](#running-the-server)
+  * [Installation](#installation)
+  * [Configuration](#configuration-1)
 
 # Overview
 
