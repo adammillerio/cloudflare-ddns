@@ -345,9 +345,12 @@ func logRequest(handler http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Log the request and serve it.
 		log.WithFields(log.Fields{
-			"remote": r.RemoteAddr,
-			"method": r.Method,
-			"url":    r.URL.String(),
+			"remote":       r.RemoteAddr,
+			"ip-client":    r.Header.Get("Client-IP"),
+			"ip-forwarded": r.Header.Get("X-Forwarded-For"),
+			"ip-cf":        r.Header.Get("CF-Connecting-IP"),
+			"method":       r.Method,
+			"url":          r.URL.String(),
 		}).Info()
 		handler.ServeHTTP(w, r)
 	})
