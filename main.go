@@ -68,6 +68,7 @@ func init() {
 func main() {
 	// Handle the update route
 	http.HandleFunc("/update", updateHandler)
+	http.HandleFunc("/nic/update", updateHandler)
 
 	// Handle the checkip route
 	http.HandleFunc("/checkip", checkIPHandler)
@@ -96,6 +97,7 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 			<h1>ClouDyn</h1>
 			<h2>Available Routes</h2>
 			<p><a href="update">/update</a> - Perform a DNS update</p>
+			<p><a href="nic/update">/nic/update</a> - Perform a DNS update (dyndns2)</p>
 			<p><a href="checkip">/checkip</a> - Get the current host's public IP</p>
 			<h2>Documentation</h2>
 			<p><a href="https://github.com/adammillerio/cloudyn">GitHub</a></p>

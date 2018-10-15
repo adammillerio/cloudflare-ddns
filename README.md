@@ -52,6 +52,8 @@ The hosted version is provided with absolutely no SLA whatsoever. I will update 
 
 The `/update` route is used for performing Dynamic DNS updates.
 
+The `/nic/update` route performs the same function, but is used for the "dyndns2" protocol in many clients.
+
 ### Configuration
 
 First, authentication information for CloudFlare needs to be provided. This can either be done via HTTP basic auth or via GET parameters.
