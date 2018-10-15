@@ -88,6 +88,8 @@ The following Dyn return codes can be returned by the server in the event of an 
 
 ### Examples
 
+#### curl
+
 Update the test.example.com host to the public IP address of the requesting machine, using E-Mail test@example.com and Key ABC123 via basic auth:
 
 ```
@@ -108,6 +110,45 @@ Update the test.example.com host to the IP 203.0.113.1 directly, using E-Mail te
 curl https://test@example.com:ABC123@cloudyn.luphy.net/update?hostname=test.luphy.net&myip=203.0.113.1
 ok 203.0.113.1
 ```
+
+#### ddclient
+
+Monitor and update the test.example.com host using the ClouDyn checkip service, E-Mail test@example.com and Key ABC123:
+
+```
+protocol=dyndns2
+use=web, web=cloudyn.luphy.net/checkip
+server=cloudyn.luphy.net
+login=test@example.com
+password='ABC123'
+test.example.com
+```
+
+Monitor and update the test.example.com host to the IP address of eth0 using E-Mail test@example.com and Key ABC123:
+
+```
+protocol=dyndns2
+use=if, if=eth0
+server=cloudyn.luphy.net
+login=test@example.com
+password='ABC123'
+test.example.com
+```
+
+#### dd-wrt
+
+Monitor and update the test.example.com host using the E-Mail test@example.com and Key ABC123:
+
+```
+DDNS Service: Custom
+DYNDNS Server: cloudyn.luphy.net
+User Name: test@example.com
+Password: ABC123
+HostName: test.example.com
+URL: /update?hostname=
+```
+
+External IP check can be used if necessary, but cannot be configured to point to ClouDyn's checkip service.
 
 ## Check IP
 
